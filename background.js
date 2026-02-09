@@ -188,13 +188,16 @@ async function handleSearch(query) {
       const host = getHost(bm.url);
       const cacheKey = getFaviconCacheKey(bm.url);
       const cachedFavicon = newCache[cacheKey];
+      // Use Chrome's internal favicon cache first, then our cache, then Google's service
+      const chromeFavicon = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(bm.url)}&size=32`;
       const item = {
         type: 'bookmark',
         id: bm.id,
         title: bm.title && bm.title.trim() ? bm.title : host,
         url: bm.url,
         host: host,
-        favIconUrl: cachedFavicon || `https://www.google.com/s2/favicons?domain=${host}&sz=32`
+        favIconUrl: chromeFavicon,
+        fallbackFavicon: cachedFavicon || `https://www.google.com/s2/favicons?domain=${host}&sz=32`
       };
       
       if (urlMatches) {
