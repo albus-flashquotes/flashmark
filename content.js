@@ -37,7 +37,7 @@
         <div class="fm-footer">
           <span><kbd>↑↓</kbd> navigate</span>
           <span><kbd>↵</kbd> open</span>
-          <span><kbd>esc</kbd> close</span>
+          <span class="fm-esc-hint"><kbd>esc</kbd> <span class="fm-esc-action">close</span></span>
         </div>
       </div>
     `;
@@ -61,9 +61,14 @@
   }
 
   function updateClearButton() {
+    const hasText = input.value.length > 0;
     const clearBtn = palette?.querySelector('.fm-clear-btn');
+    const escAction = palette?.querySelector('.fm-esc-action');
     if (clearBtn) {
-      clearBtn.classList.toggle('fm-visible', input.value.length > 0);
+      clearBtn.classList.toggle('fm-visible', hasText);
+    }
+    if (escAction) {
+      escAction.textContent = hasText ? 'clear' : 'close';
     }
   }
 
@@ -187,7 +192,11 @@
     if (result.type === 'action') {
       const response = await chrome.runtime.sendMessage({ action: 'executeAction', actionId: result.id });
       if (response.success) {
-        showToast(`✨ Closed ${response.closed} tabs, kept ${response.kept}`);
+        if (result.id === 'cleanup') {
+          showToast(`✨ Closed ${response.closed} tabs, kept ${response.kept}`);
+        } else if (result.id === 'reset') {
+          showToast(`🔄 ${response.message}`);
+        }
       }
     } else {
       await chrome.runtime.sendMessage({ action: 'openResult', result });

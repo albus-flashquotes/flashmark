@@ -30,7 +30,15 @@ const ACTIONS = [
     title: 'Cleanup',
     description: 'Close tabs without matching bookmarks, keep one per domain',
     icon: '✨',
-    keywords: ['cleanup', 'clean', 'close', 'tidy', 'organize', 'dedupe']
+    keywords: ['cleanup', 'clean', 'tidy', 'organize', 'dedupe']
+  },
+  {
+    id: 'reset',
+    type: 'action',
+    title: 'Reset',
+    description: 'Close all tabs and start fresh',
+    icon: '🔄',
+    keywords: ['reset', 'close all', 'fresh', 'clear', 'new', 'start over']
   }
 ];
 
@@ -144,9 +152,30 @@ async function executeAction(actionId) {
   switch (actionId) {
     case 'cleanup':
       return await actionCleanup();
+    case 'reset':
+      return await actionReset();
     default:
       return { success: false, error: 'Unknown action' };
   }
+}
+
+async function actionReset() {
+  // Get all tabs in current window
+  const tabs = await chrome.tabs.query({ currentWindow: true });
+  
+  // Create a new empty tab first
+  await chrome.tabs.create({ url: 'chrome://newtab' });
+  
+  // Close all other tabs
+  const tabIds = tabs.map(t => t.id);
+  if (tabIds.length > 0) {
+    await chrome.tabs.remove(tabIds);
+  }
+
+  return { 
+    success: true, 
+    message: `Closed ${tabIds.length} tabs`
+  };
 }
 
 async function actionCleanup() {
