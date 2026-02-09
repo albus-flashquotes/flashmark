@@ -1,5 +1,9 @@
 /* FlashMark - Command Palette Styles */
 
+#flashmark-palette *:focus {
+  outline: none;
+}
+
 #flashmark-palette {
   display: none;
   position: fixed;
