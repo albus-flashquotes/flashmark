@@ -144,7 +144,8 @@
         badge = r.type === 'tab' 
           ? '<span class="fm-badge fm-badge-tab">TAB</span>'
           : '<span class="fm-badge fm-badge-bookmark">★</span>';
-        subtitle = r.host;
+        // If title is just the host, show full URL as subtitle instead
+        subtitle = (r.title === r.host) ? r.url : r.host;
       }
 
       return `

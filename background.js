@@ -95,13 +95,14 @@ async function handleSearch(query) {
     const titleMatches = title.includes(q);
     
     if (urlMatches || titleMatches) {
+      const host = getHost(bm.url);
       const item = {
         type: 'bookmark',
         id: bm.id,
-        title: bm.title || 'Untitled',
+        title: bm.title && bm.title.trim() ? bm.title : host,
         url: bm.url,
-        host: getHost(bm.url),
-        favIconUrl: getFaviconUrl(bm.url)
+        host: host,
+        favIconUrl: `https://www.google.com/s2/favicons?domain=${host}&sz=32`
       };
       
       if (urlMatches) {
