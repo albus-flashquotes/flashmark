@@ -128,6 +128,7 @@
   function renderResults() {
     if (currentResults.length === 0) {
       resultsList.innerHTML = '<div class="fm-empty">No results found</div>';
+      updateFooter();
       return;
     }
 
@@ -166,6 +167,8 @@
         selectResult(parseInt(el.dataset.index));
       });
     });
+    
+    updateFooter();
   }
 
   function onKeyDown(e) {
@@ -187,7 +190,37 @@
     } else if (e.key === 'Enter') {
       selectResult(selectedIndex);
       e.preventDefault();
+    } else if (e.key === 'Tab' && !e.shiftKey) {
+      // Tab opens settings for actions that have them
+      const result = currentResults[selectedIndex];
+      if (result?.type === 'action' && result.hasSettings) {
+        openActionSettings(result.id);
+        e.preventDefault();
+      }
     }
+  }
+
+  // Open settings for an action
+  async function openActionSettings(actionId) {
+    await chrome.runtime.sendMessage({ action: 'executeAction', actionId, openSettings: true });
+    hidePalette();
+  }
+
+  // Update footer based on selected item
+  function updateFooter() {
+    const footer = palette?.querySelector('.fm-footer');
+    if (!footer) return;
+    
+    const result = currentResults[selectedIndex];
+    const hasSettings = result?.type === 'action' && result.hasSettings;
+    const hasText = input?.value?.length > 0;
+    
+    footer.innerHTML = `
+      <span><kbd>↑↓</kbd> navigate</span>
+      <span><kbd>↵</kbd> open</span>
+      ${hasSettings ? '<span><kbd>⇥</kbd> settings</span>' : ''}
+      <span><kbd>esc</kbd> ${hasText ? 'clear' : 'close'}</span>
+    `;
   }
 
   async function selectResult(index) {

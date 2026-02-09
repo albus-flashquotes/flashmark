@@ -30,15 +30,26 @@ const ACTIONS = [
     title: 'Cleanup',
     description: 'Close tabs without matching bookmarks, keep one per domain',
     icon: '✨',
-    keywords: ['cleanup', 'clean', 'tidy', 'organize', 'dedupe']
+    keywords: ['cleanup', 'clean', 'tidy', 'organize', 'dedupe'],
+    hasSettings: false
   },
   {
     id: 'reset',
     type: 'action',
     title: 'Reset',
-    description: 'Close all tabs and start fresh',
+    description: 'Close all tabs and open home page',
     icon: '🔄',
-    keywords: ['reset', 'close all', 'fresh', 'clear', 'new', 'start over']
+    keywords: ['reset', 'close all', 'fresh', 'clear', 'new', 'start over', 'home'],
+    hasSettings: true
+  },
+  {
+    id: 'settings',
+    type: 'action',
+    title: 'Settings',
+    description: 'Configure FlashMark actions',
+    icon: '⚙️',
+    keywords: ['settings', 'config', 'configure', 'preferences', 'options'],
+    hasSettings: false
   }
 ];
 
@@ -52,7 +63,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
   if (request.action === 'executeAction') {
-    executeAction(request.actionId).then(sendResponse);
+    executeAction(request.actionId, request.openSettings).then(sendResponse);
+    return true;
+  }
+  if (request.action === 'getActionMeta') {
+    const action = ACTIONS.find(a => a.id === request.actionId);
+    sendResponse(action || null);
     return true;
   }
 });
@@ -113,13 +129,18 @@ async function handleSearch(query) {
     }
   }
 
-  // Filter actions
-  const matchedActions = ACTIONS.filter(action => {
-    const titleMatch = action.title.toLowerCase().includes(q);
-    const descMatch = action.description.toLowerCase().includes(q);
-    const keywordMatch = action.keywords.some(kw => kw.includes(q));
-    return titleMatch || descMatch || keywordMatch;
-  });
+  // Filter actions (include hasSettings in result)
+  const matchedActions = ACTIONS
+    .filter(action => {
+      const titleMatch = action.title.toLowerCase().includes(q);
+      const descMatch = action.description.toLowerCase().includes(q);
+      const keywordMatch = action.keywords.some(kw => kw.includes(q));
+      return titleMatch || descMatch || keywordMatch;
+    })
+    .map(action => ({
+      ...action,
+      hasSettings: action.hasSettings || false
+    }));
 
   // Dedupe: if a bookmark's host has an open tab, filter it from primary bookmarks
   const openHosts = new Set(matchedTabs.map(t => t.host));
@@ -174,23 +195,36 @@ function getHost(url) {
   }
 }
 
-async function executeAction(actionId) {
+async function executeAction(actionId, openSettings = false) {
+  // If openSettings is true, open settings for the action
+  if (openSettings) {
+    await chrome.tabs.create({ url: chrome.runtime.getURL('settings.html') });
+    return { success: true, message: 'Opened settings' };
+  }
+
   switch (actionId) {
     case 'cleanup':
       return await actionCleanup();
     case 'reset':
       return await actionReset();
+    case 'settings':
+      await chrome.tabs.create({ url: chrome.runtime.getURL('settings.html') });
+      return { success: true, message: 'Opened settings' };
     default:
       return { success: false, error: 'Unknown action' };
   }
 }
 
 async function actionReset() {
+  // Get configured reset URL
+  const { resetUrl } = await chrome.storage.sync.get(['resetUrl']);
+  const url = resetUrl || 'chrome://newtab';
+
   // Get all tabs in current window
   const tabs = await chrome.tabs.query({ currentWindow: true });
   
-  // Create a new empty tab first
-  await chrome.tabs.create({ url: 'chrome://newtab' });
+  // Create the home page tab first
+  await chrome.tabs.create({ url });
   
   // Close all other tabs
   const tabIds = tabs.map(t => t.id);

@@ -64,6 +64,7 @@ async function onSearch() {
 function renderResults() {
   if (currentResults.length === 0) {
     resultsList.innerHTML = '<div class="fm-empty">No results found</div>';
+    updateFooter();
     return;
   }
 
@@ -95,6 +96,8 @@ function renderResults() {
       </div>
     `;
   }).join('');
+  
+  updateFooter();
 
   // Add click handlers
   resultsList.querySelectorAll('.fm-result').forEach(el => {
@@ -122,7 +125,35 @@ function onKeyDown(e) {
   } else if (e.key === 'Enter') {
     selectResult(selectedIndex);
     e.preventDefault();
+  } else if (e.key === 'Tab' && !e.shiftKey) {
+    // Tab opens settings for actions that have them
+    const result = currentResults[selectedIndex];
+    if (result?.type === 'action' && result.hasSettings) {
+      openActionSettings(result.id);
+      e.preventDefault();
+    }
   }
+}
+
+// Update footer based on selected item
+function updateFooter() {
+  const footer = document.querySelector('.fm-footer');
+  if (!footer) return;
+  
+  const result = currentResults[selectedIndex];
+  const hasSettings = result?.type === 'action' && result.hasSettings;
+  
+  footer.innerHTML = `
+    <span><kbd>↑↓</kbd> navigate</span>
+    <span><kbd>↵</kbd> open</span>
+    ${hasSettings ? '<span><kbd>⇥</kbd> settings</span>' : ''}
+    <span><kbd>esc</kbd> clear</span>
+  `;
+}
+
+// Open settings for an action
+async function openActionSettings(actionId) {
+  await chrome.runtime.sendMessage({ action: 'executeAction', actionId, openSettings: true });
 }
 
 // Select result
