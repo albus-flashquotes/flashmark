@@ -165,5 +165,13 @@ input.addEventListener('input', () => {
 input.addEventListener('keydown', onKeyDown);
 clearBtn.addEventListener('click', clearSearch);
 
-// Auto-focus
-input.focus();
+// Auto-focus (override Chrome's address bar focus)
+function forceFocus() {
+  input.focus();
+}
+forceFocus();
+setTimeout(forceFocus, 10);
+setTimeout(forceFocus, 50);
+setTimeout(forceFocus, 100);
+document.addEventListener('DOMContentLoaded', forceFocus);
+window.addEventListener('focus', forceFocus);
