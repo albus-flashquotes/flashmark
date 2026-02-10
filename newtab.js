@@ -1,5 +1,13 @@
 // FlashMark - New Tab Page
 
+// Auto-refresh when extension reloads (context invalidated)
+chrome.runtime.onMessage.addListener(() => {});
+setInterval(() => {
+  if (!chrome.runtime?.id) {
+    location.reload();
+  }
+}, 500);
+
 const input = document.querySelector('.fm-input');
 const resultsList = document.querySelector('.fm-results');
 const clearBtn = document.querySelector('.fm-clear-btn');
