@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Arkify",
+  "name": "Arcify",
   "version": "1.0.0",
   "description": "Command palette for tabs and bookmarks",
   "permissions": ["bookmarks", "tabs", "activeTab", "scripting", "favicon", "storage"],
@@ -16,7 +16,7 @@
         "default": "Ctrl+Shift+K",
         "mac": "Command+Shift+K"
       },
-      "description": "Toggle Arkify palette"
+      "description": "Toggle Arcify palette"
     },
     "quick-switch": {
       "suggested_key": {

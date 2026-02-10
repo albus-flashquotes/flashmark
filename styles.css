@@ -1,19 +1,19 @@
-/* Arkify - Command Palette Styles */
+/* Arcify - Command Palette Styles */
 
-#arkify-palette *:focus,
-#arkify-palette *:focus-visible,
-#arkify-palette *:focus-within {
+#arcify-palette *:focus,
+#arcify-palette *:focus-visible,
+#arcify-palette *:focus-within {
   outline: none !important;
   box-shadow: none !important;
 }
 
-#arkify-palette input:focus,
-#arkify-palette button:focus {
+#arcify-palette input:focus,
+#arcify-palette button:focus {
   outline: none !important;
   border-color: inherit;
 }
 
-#arkify-palette {
+#arcify-palette {
   display: none;
   position: fixed;
   top: 0;
@@ -24,7 +24,7 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
 }
 
-#arkify-palette.fm-visible {
+#arcify-palette.fm-visible {
   display: block;
 }
 
@@ -337,11 +337,11 @@
 }
 
 /* Quick Switch Mode - same width as main palette */
-#arkify-palette.fm-quick-switch .fm-search-wrap {
+#arcify-palette.fm-quick-switch .fm-search-wrap {
   display: none;
 }
 
-#arkify-palette.fm-quick-switch .fm-results {
+#arcify-palette.fm-quick-switch .fm-results {
   max-height: 400px;
   padding-top: 8px;
 }

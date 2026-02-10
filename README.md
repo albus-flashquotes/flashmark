@@ -1,6 +1,6 @@
-# Arkify
+# Arcify
 
-Arc browser was shut down and is no longer supported. Arkify brings my favorite Arc features to Chrome as an extension — giving you Arc-like experiences without leaving Chrome.
+Arc browser was shut down and is no longer supported. Arcify brings my favorite Arc features to Chrome as an extension — giving you Arc-like experiences without leaving Chrome.
 
 ## Features
 
@@ -44,9 +44,9 @@ Switch between recent tabs instantly, just like Cmd+Tab for apps.
 | `Tab` | Open action settings |
 | `Esc` | Close palette |
 
-## Why "Arkify"?
+## Why "Arcify"?
 
-Arc browser had some genuinely great UX ideas. When it was discontinued, I wanted to keep using those patterns. Arkify is my way of bringing Arc's best features to Chrome — starting with the command palette and quick switcher.
+Arc browser had some genuinely great UX ideas. When it was discontinued, I wanted to keep using those patterns. Arcify is my way of bringing Arc's best features to Chrome — starting with the command palette and quick switcher.
 
 ## Contributing
 

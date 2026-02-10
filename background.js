@@ -1,4 +1,4 @@
-// Arkify - Background Service Worker
+// Arcify - Background Service Worker
 
 // MRU (Most Recently Used) tab tracking
 let mruTabIds = []; // Ordered list of tab IDs, most recent first
@@ -140,7 +140,7 @@ const ACTIONS = [
     id: 'settings',
     type: 'action',
     title: 'Settings',
-    description: 'Configure Arkify preferences',
+    description: 'Configure Arcify preferences',
     icon: '⚙️',
     keywords: ['settings', 'config', 'configure', 'preferences', 'options', 'search engine'],
     hasSettings: true
@@ -209,7 +209,7 @@ const ACTIONS = [
     id: 'reload-extension',
     type: 'action',
     title: 'Reload Extension',
-    description: 'Reload Arkify (dev mode)',
+    description: 'Reload Arcify (dev mode)',
     icon: '🔄',
     keywords: ['reload', 'refresh', 'restart', 'dev', 'extension', 'update'],
     hasSettings: false

@@ -1,4 +1,4 @@
-// Arkify - New Tab Page
+// Arcify - New Tab Page
 
 // Auto-refresh when extension reloads (context invalidated)
 chrome.runtime.onMessage.addListener(() => {});
@@ -214,7 +214,7 @@ function showSettingsPanel(currentEngine) {
         <span class="fm-settings-back" tabindex="0">←</span>
         <div class="fm-settings-title-wrap">
           <span class="fm-settings-title">Settings</span>
-          <span class="fm-settings-desc">Configure Arkify preferences</span>
+          <span class="fm-settings-desc">Configure Arcify preferences</span>
         </div>
       </div>
       <div class="fm-settings-row">

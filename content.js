@@ -1,11 +1,11 @@
-// Arkify - Content Script (Command Palette UI)
+// Arcify - Content Script (Command Palette UI)
 
 (function() {
   // Prevent double injection
-  if (window.__arkify_loaded) {
+  if (window.__arcify_loaded) {
     return;
   }
-  window.__arkify_loaded = true;
+  window.__arcify_loaded = true;
 
   let palette = null;
   let input = null;
@@ -20,7 +20,7 @@
     if (palette) return palette;
 
     palette = document.createElement('div');
-    palette.id = 'arkify-palette';
+    palette.id = 'arcify-palette';
     palette.innerHTML = `
       <div class="fm-backdrop"></div>
       <div class="fm-modal">
@@ -263,7 +263,7 @@
           <span class="fm-settings-back">←</span>
           <div class="fm-settings-title-wrap">
             <span class="fm-settings-title">Settings</span>
-            <span class="fm-settings-desc">Configure Arkify preferences</span>
+            <span class="fm-settings-desc">Configure Arcify preferences</span>
           </div>
         </div>
         <div class="fm-settings-row">
@@ -441,11 +441,11 @@
   }
   
   function showToast(message) {
-    const existing = document.getElementById('arkify-toast');
+    const existing = document.getElementById('arcify-toast');
     if (existing) existing.remove();
 
     const toast = document.createElement('div');
-    toast.id = 'arkify-toast';
+    toast.id = 'arcify-toast';
     toast.className = 'fm-toast';
     toast.textContent = message;
     document.body.appendChild(toast);

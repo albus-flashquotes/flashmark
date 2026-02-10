@@ -1,4 +1,4 @@
-// Arkify Settings
+// Arcify Settings
 
 const resetUrlInput = document.getElementById('reset-url');
 const saveBtn = document.getElementById('save-btn');
