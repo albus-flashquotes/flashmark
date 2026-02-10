@@ -184,6 +184,12 @@
       });
     });
     
+    // Scroll selected item into view
+    const selectedEl = resultsList.querySelector('.fm-selected');
+    if (selectedEl) {
+      selectedEl.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+    }
+    
     updateFooter();
   }
 
@@ -285,6 +291,15 @@
     const footer = palette?.querySelector('.fm-footer');
     if (!footer) return;
     
+    if (quickSwitchMode) {
+      footer.innerHTML = `
+        <span><kbd>ctrl+Q</kbd> next</span>
+        <span><kbd>↑↓</kbd> navigate</span>
+        <span>release <kbd>ctrl</kbd> to switch</span>
+      `;
+      return;
+    }
+    
     if (settingsMode) {
       footer.innerHTML = `
         <span><kbd>↵</kbd> save</span>
@@ -297,9 +312,17 @@
     const hasSettings = result?.type === 'action' && result.hasSettings;
     const hasText = input?.value?.length > 0;
     
+    // Contextual action label based on result type
+    let actionLabel = 'open';
+    if (result?.type === 'tab') {
+      actionLabel = 'switch';
+    } else if (result?.type === 'action') {
+      actionLabel = 'run';
+    }
+    
     footer.innerHTML = `
       <span><kbd>↑↓</kbd> navigate</span>
-      <span><kbd>↵</kbd> open</span>
+      <span><kbd>↵</kbd> ${actionLabel}</span>
       ${hasSettings ? '<span><kbd>⇥</kbd> settings</span>' : ''}
       <span><kbd>esc</kbd> ${hasText ? 'clear' : 'close'}</span>
     `;
@@ -376,7 +399,6 @@
     palette.classList.add('fm-quick-switch');
     
     renderResults();
-    updateQuickSwitchFooter();
     
     // Listen for Ctrl release to switch
     document.addEventListener('keyup', onQuickSwitchKeyUp);
@@ -436,17 +458,6 @@
     document.removeEventListener('keydown', onQuickSwitchKeyDown);
   }
   
-  function updateQuickSwitchFooter() {
-    const footer = palette?.querySelector('.fm-footer');
-    if (!footer) return;
-    
-    footer.innerHTML = `
-      <span><kbd>ctrl+Q</kbd> next</span>
-      <span><kbd>↑↓</kbd> navigate</span>
-      <span>release <kbd>ctrl</kbd> to switch</span>
-    `;
-  }
-
   // Listen for toggle message
   chrome.runtime.onMessage.addListener((msg) => {
     if (msg.action === 'toggle') {
