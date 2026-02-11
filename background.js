@@ -252,6 +252,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     chrome.runtime.reload();
     return true;
   }
+  if (request.type === 'getCommands') {
+    chrome.commands.getAll().then(sendResponse);
+    return true;
+  }
+  if (request.type === 'openShortcuts') {
+    chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+    return true;
+  }
 });
 
 // Search engine URL templates

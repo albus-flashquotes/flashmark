@@ -240,7 +240,7 @@
     }
   }
 
-  function showSettingsPanel(currentEngine) {
+  async function showSettingsPanel(currentEngine) {
     const engines = [
       { id: 'google', name: 'Google' },
       { id: 'duckduckgo', name: 'DuckDuckGo' },
@@ -252,6 +252,11 @@
       { id: 'gemini', name: 'Gemini' },
       { id: 'claude', name: 'Claude' }
     ];
+    
+    // Get current keyboard shortcuts
+    const commands = await chrome.runtime.sendMessage({ type: 'getCommands' });
+    const paletteShortcut = commands?.find(c => c.name === 'toggle-palette')?.shortcut || 'Not set';
+    const quickSwitchShortcut = commands?.find(c => c.name === 'quick-switch')?.shortcut || 'Not set';
     
     const options = engines.map(e => 
       `<option value="${e.id}" ${e.id === currentEngine ? 'selected' : ''}>${e.name}</option>`
@@ -266,6 +271,19 @@
             <span class="fm-settings-desc">Configure Arc preferences</span>
           </div>
         </div>
+        <div class="fm-settings-section-title">Keyboard Shortcuts</div>
+        <div class="fm-settings-row">
+          <div class="fm-settings-label">Command Palette</div>
+          <kbd class="fm-shortcut ${paletteShortcut === 'Not set' ? 'not-set' : ''}">${paletteShortcut}</kbd>
+        </div>
+        <div class="fm-settings-row">
+          <div class="fm-settings-label">Quick Tab Switch</div>
+          <kbd class="fm-shortcut ${quickSwitchShortcut === 'Not set' ? 'not-set' : ''}">${quickSwitchShortcut || 'Not set'}</kbd>
+        </div>
+        <div class="fm-settings-row">
+          <button class="fm-configure-shortcuts-btn">Configure Shortcuts in Chrome</button>
+        </div>
+        <div class="fm-settings-section-title" style="margin-top: 16px;">Search</div>
         <div class="fm-settings-row">
           <div class="fm-settings-label">Search Engine</div>
           <select class="fm-settings-select">
@@ -278,6 +296,7 @@
     
     const select = resultsList.querySelector('.fm-settings-select');
     const backBtn = resultsList.querySelector('.fm-settings-back');
+    const configureBtn = resultsList.querySelector('.fm-configure-shortcuts-btn');
     
     select.focus();
     
@@ -291,6 +310,10 @@
         exitSettingsMode();
         e.preventDefault();
       }
+    });
+    
+    configureBtn.addEventListener('click', () => {
+      chrome.runtime.sendMessage({ type: 'openShortcuts' });
     });
     
     backBtn.addEventListener('click', exitSettingsMode);

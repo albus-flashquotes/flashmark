@@ -292,6 +292,48 @@
   color: #555;
 }
 
+.fm-settings-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.fm-shortcut {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-family: inherit;
+  font-size: 12px;
+  color: #4ade80;
+}
+
+.fm-shortcut.not-set {
+  color: #f87171;
+  border-color: rgba(248,113,113,0.3);
+  background: rgba(248,113,113,0.1);
+}
+
+.fm-configure-shortcuts-btn {
+  background: #6366f1;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #fff;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.2s;
+}
+
+.fm-configure-shortcuts-btn:hover {
+  background: #4f46e5;
+}
+
 .fm-footer {
   display: flex;
   gap: 20px;
