@@ -569,6 +569,10 @@
     quickSwitchMode = true;
     ctrlHeld = true;
     
+    // Start in keyboard mode
+    keyboardMode = true;
+    palette.classList.add('keyboard-mode');
+    
     // Get MRU tabs
     const tabs = await chrome.runtime.sendMessage({ action: 'getMruTabs' });
     currentResults = tabs;
@@ -597,12 +601,15 @@
       
       if (e.key === 'q' && e.ctrlKey) {
         // Cycle to next tab
+        enableKeyboardMode();
         selectedIndex = (selectedIndex + 1) % currentResults.length;
         renderResults();
       } else if (e.key === 'ArrowDown' || e.key === 'Tab') {
+        enableKeyboardMode();
         selectedIndex = (selectedIndex + 1) % currentResults.length;
         renderResults();
       } else if (e.key === 'ArrowUp' || (e.key === 'Tab' && e.shiftKey)) {
+        enableKeyboardMode();
         selectedIndex = (selectedIndex - 1 + currentResults.length) % currentResults.length;
         renderResults();
       } else if (e.key === 'Escape') {
