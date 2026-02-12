@@ -14,6 +14,7 @@
   let currentResults = [];
   let settingsMode = null;
   let quickSwitchMode = false;
+  let profileSwitchMode = false;
   let ctrlHeld = false;
   let missingShortcuts = [];
   let keyboardMode = true; // Start in keyboard mode, ignore mouse until it moves
@@ -650,6 +651,188 @@
     document.removeEventListener('keydown', onQuickSwitchKeyDown);
   }
   
+  // Profile Switch mode - show Chrome profiles
+  async function showProfileSwitch() {
+    createPalette();
+    profileSwitchMode = true;
+    ctrlHeld = true;
+    
+    // Start in keyboard mode
+    keyboardMode = true;
+    palette.classList.add('keyboard-mode');
+    
+    // Get profiles
+    const profiles = await chrome.runtime.sendMessage({ action: 'getProfiles' });
+    currentResults = profiles.map(p => ({
+      type: 'profile',
+      id: p.id,
+      title: p.name,
+      email: p.email || '',
+      path: p.path,
+      isCurrent: p.isCurrent,
+      isAction: p.isAction,
+      icon: p.icon
+    }));
+    
+    // Select first non-current profile
+    selectedIndex = currentResults.findIndex(p => !p.isCurrent);
+    if (selectedIndex < 0) selectedIndex = 0;
+    
+    // Hide search input in profile switch mode
+    const searchWrap = palette.querySelector('.fm-search-wrap');
+    if (searchWrap) searchWrap.style.display = 'none';
+    
+    palette.classList.add('fm-visible');
+    palette.classList.add('fm-quick-switch');
+    palette.classList.add('fm-profile-switch');
+    
+    renderProfileResults();
+    
+    // Listen for Ctrl release to switch
+    document.addEventListener('keyup', onProfileSwitchKeyUp);
+    document.addEventListener('keydown', onProfileSwitchKeyDown);
+  }
+  
+  function renderProfileResults() {
+    if (currentResults.length === 0) {
+      resultsList.innerHTML = '<div class="fm-empty">No profiles found</div>';
+      updateProfileFooter();
+      return;
+    }
+
+    resultsList.innerHTML = currentResults.map((r, i) => {
+      const subtitle = r.isCurrent ? 'Current profile' : (r.email || r.path || '');
+      const currentBadge = r.isCurrent ? '<span class="fm-badge fm-badge-current">CURRENT</span>' : '';
+      const actionBadge = r.isAction ? '<span class="fm-badge fm-badge-action">ACTION</span>' : '';
+      
+      return `
+        <div class="fm-result ${i === selectedIndex ? 'fm-selected' : ''}" data-index="${i}">
+          <span class="fm-profile-icon">${r.icon}</span>
+          <div class="fm-result-text">
+            <div class="fm-title">${escapeHtml(r.title)}</div>
+            <div class="fm-url">${escapeHtml(subtitle)}</div>
+          </div>
+          ${currentBadge}${actionBadge}
+        </div>
+      `;
+    }).join('');
+
+    // Add click and hover handlers
+    resultsList.querySelectorAll('.fm-result').forEach(el => {
+      el.addEventListener('click', () => {
+        selectProfile(parseInt(el.dataset.index));
+      });
+      el.addEventListener('mouseenter', () => {
+        if (!keyboardMode) {
+          selectedIndex = parseInt(el.dataset.index);
+          renderProfileResults();
+        }
+      });
+    });
+    
+    // Scroll selected item into view
+    const selectedEl = resultsList.querySelector('.fm-selected');
+    if (selectedEl) {
+      selectedEl.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+    }
+    
+    updateProfileFooter();
+  }
+  
+  function updateProfileFooter() {
+    const footer = palette?.querySelector('.fm-footer');
+    if (!footer) return;
+    
+    footer.innerHTML = `
+      <span><kbd>ctrl+P</kbd> next</span>
+      <span><kbd>↑↓</kbd> navigate</span>
+      <span>release <kbd>ctrl</kbd> to switch</span>
+    `;
+  }
+  
+  function onProfileSwitchKeyDown(e) {
+    if (profileSwitchMode) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (e.key === 'p' && e.ctrlKey) {
+        // Cycle to next profile
+        enableKeyboardMode();
+        selectedIndex = (selectedIndex + 1) % currentResults.length;
+        renderProfileResults();
+      } else if (e.key === 'ArrowDown' || e.key === 'Tab') {
+        enableKeyboardMode();
+        selectedIndex = (selectedIndex + 1) % currentResults.length;
+        renderProfileResults();
+      } else if (e.key === 'ArrowUp' || (e.key === 'Tab' && e.shiftKey)) {
+        enableKeyboardMode();
+        selectedIndex = (selectedIndex - 1 + currentResults.length) % currentResults.length;
+        renderProfileResults();
+      } else if (e.key === 'Escape') {
+        hideProfileSwitch();
+      } else if (e.key === 'Enter') {
+        selectProfile(selectedIndex);
+      }
+    }
+  }
+  
+  function onProfileSwitchKeyUp(e) {
+    if (profileSwitchMode && e.key === 'Control') {
+      // Ctrl released - switch to selected profile
+      selectProfile(selectedIndex);
+    }
+  }
+  
+  async function selectProfile(index) {
+    const result = currentResults[index];
+    if (!result) {
+      hideProfileSwitch();
+      return;
+    }
+    
+    if (result.isCurrent) {
+      // Already current, just close
+      showToast('Already on this profile');
+      hideProfileSwitch();
+      return;
+    }
+    
+    if (result.isAction || !result.path) {
+      // Open profile manager
+      await chrome.runtime.sendMessage({ action: 'openProfilePicker' });
+      hideProfileSwitch();
+      return;
+    }
+    
+    // Try to switch profile
+    const response = await chrome.runtime.sendMessage({ 
+      action: 'switchProfile', 
+      profilePath: result.path 
+    });
+    
+    if (response.message) {
+      showToast(response.message);
+    }
+    
+    hideProfileSwitch();
+  }
+  
+  function hideProfileSwitch() {
+    profileSwitchMode = false;
+    ctrlHeld = false;
+    
+    // Show search input again
+    const searchWrap = palette?.querySelector('.fm-search-wrap');
+    if (searchWrap) searchWrap.style.display = '';
+    
+    palette?.classList.remove('fm-quick-switch');
+    palette?.classList.remove('fm-profile-switch');
+    hidePalette();
+    
+    document.removeEventListener('keyup', onProfileSwitchKeyUp);
+    document.removeEventListener('keydown', onProfileSwitchKeyDown);
+  }
+  
   // Listen for toggle message
   chrome.runtime.onMessage.addListener((msg) => {
     if (msg.action === 'toggle') {
@@ -665,6 +848,15 @@
         renderResults();
       } else {
         showQuickSwitch();
+      }
+    }
+    if (msg.action === 'profile-switch') {
+      if (profileSwitchMode) {
+        // Already in profile switch - cycle
+        selectedIndex = (selectedIndex + 1) % currentResults.length;
+        renderProfileResults();
+      } else {
+        showProfileSwitch();
       }
     }
   });

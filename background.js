@@ -114,6 +114,27 @@ chrome.commands.onCommand.addListener(async (command) => {
       }
     }
   }
+  
+  if (command === 'profile-switch') {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.id) {
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          files: ['content.js']
+        });
+        await chrome.scripting.insertCSS({
+          target: { tabId: tab.id },
+          files: ['styles.css']
+        });
+        chrome.tabs.sendMessage(tab.id, { action: 'profile-switch' });
+      } catch (e) {
+        // Can't inject - open profile picker directly
+        console.log('Cannot inject, opening profile picker directly');
+        chrome.tabs.create({ url: 'chrome://settings/manageProfile' });
+      }
+    }
+  }
 });
 
 // Available actions
@@ -260,7 +281,125 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
     return true;
   }
+  if (request.action === 'getProfiles') {
+    getProfiles().then(sendResponse);
+    return true;
+  }
+  if (request.action === 'switchProfile') {
+    switchProfile(request.profilePath).then(sendResponse);
+    return true;
+  }
+  if (request.action === 'openProfilePicker') {
+    chrome.tabs.create({ url: 'chrome://settings/manageProfile' });
+    sendResponse({ success: true });
+    return true;
+  }
 });
+
+// Get Chrome profiles by reading Local State file
+// Note: This is a best-effort approach - Chrome doesn't expose profiles via extension API
+async function getProfiles() {
+  // We can't directly read the filesystem from an extension
+  // Instead, we'll use a workaround: check for profile indicators
+  
+  // Get current profile info if available
+  let currentProfile = null;
+  try {
+    // chrome.identity.getProfileUserInfo only works if signed in
+    const userInfo = await chrome.identity.getProfileUserInfo({ accountStatus: 'ANY' });
+    if (userInfo.email) {
+      currentProfile = {
+        name: userInfo.email.split('@')[0],
+        email: userInfo.email,
+        isCurrent: true
+      };
+    }
+  } catch (e) {
+    console.log('Could not get profile user info:', e);
+  }
+  
+  // Since we can't enumerate profiles from an extension, we'll return
+  // a helpful message with common profiles and the option to open profile picker
+  const profiles = [];
+  
+  if (currentProfile) {
+    profiles.push({
+      id: 'current',
+      name: currentProfile.name,
+      email: currentProfile.email,
+      path: 'Default',
+      isCurrent: true,
+      icon: '👤'
+    });
+  } else {
+    profiles.push({
+      id: 'current',
+      name: 'Current Profile',
+      path: 'Default',
+      isCurrent: true,
+      icon: '👤'
+    });
+  }
+  
+  // Add common profile paths that users might have
+  // These are placeholders - the actual switching will open the profile manager
+  profiles.push({
+    id: 'profile-1',
+    name: 'Profile 1',
+    path: 'Profile 1',
+    isCurrent: false,
+    icon: '👤'
+  });
+  
+  profiles.push({
+    id: 'profile-2', 
+    name: 'Profile 2',
+    path: 'Profile 2',
+    isCurrent: false,
+    icon: '👤'
+  });
+  
+  profiles.push({
+    id: 'profile-3',
+    name: 'Profile 3', 
+    path: 'Profile 3',
+    isCurrent: false,
+    icon: '👤'
+  });
+  
+  // Add option to open full profile picker
+  profiles.push({
+    id: 'manage',
+    name: 'Manage Profiles...',
+    path: null,
+    isCurrent: false,
+    isAction: true,
+    icon: '⚙️'
+  });
+  
+  return profiles;
+}
+
+// Switch to a different Chrome profile
+async function switchProfile(profilePath) {
+  if (!profilePath) {
+    // Open profile manager
+    await chrome.tabs.create({ url: 'chrome://settings/manageProfile' });
+    return { success: true, action: 'opened_manager' };
+  }
+  
+  // Unfortunately, Chrome extensions cannot directly switch profiles
+  // The best we can do is open the profile manager or create a new window
+  // with a hint to use a different profile
+  
+  // Open profile picker
+  await chrome.tabs.create({ url: 'chrome://settings/manageProfile' });
+  return { 
+    success: true, 
+    action: 'opened_manager',
+    message: `Please select "${profilePath}" from the profile manager`
+  };
+}
 
 // Search engine URL templates
 const SEARCH_ENGINES = {
